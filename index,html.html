@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programming Wiki</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        header {
+            background-color: #343a40;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+        }
+        header button {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        header button:hover {
+            background-color: #0056b3;
+        }
+        nav {
+            background-color: #6c757d;
+            padding: 10px;
+            display: flex;
+            justify-content: space-around;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #495057;
+            border-radius: 5px;
+        }
+        nav a:hover {
+            background-color: #343a40;
+        }
+        #content {
+            padding: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .form-section {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            display: none; /* Эта форма будет показываться только для владельца */
+        }
+        .search-bar {
+            margin: 20px;
+            text-align: center;
+        }
+        .search-bar input {
+            padding: 10px;
+            font-size: 16px;
+            width: 50%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .toolbar button {
+            margin: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .toolbar button img {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Programming Wiki</h1>
+    <!-- Кнопка только на главной странице -->
+    <button id="loginButton" onclick="showLogin()">Войти как владелец</button>
+    <button id="logoutButton" class="hidden" onclick="logout()">Выйти</button> <!-- Кнопка "Выйти" -->
+</header>
+
+<nav>
+    <a href="#" onclick="showArticle('html')">HTML</a>
+    <a href="#" onclick="showArticle('css')">CSS</a>
+    <a href="#" onclick="showArticle('javascript')">JavaScript</a>
+</nav>
+
+<div class="search-bar">
+    <input type="text" id="search" placeholder="Search..." onkeyup="searchArticles()">
+</div>
+
+<div id="content">
+    <h2>Добро пожаловать в Programming Wiki</h2>
+    <p>Выберите раздел HTML, CSS или JavaScript для получения информации и примеров кода.</p>
+</div>
+
+<!-- Форма для добавления гайдов (только для владельца) -->
+<div class="form-section" id="guideForm">
+    <h3>Добавить новый гайд</h3>
+    <input type="text" id="guideTitle" placeholder="Название гайда"><br><br>
+
+    <!-- Панель инструментов для форматирования -->
+    <div class="toolbar">
+        <button onclick="formatText('bold')"><b>B</b></button>
+        <button onclick="formatText('italic')"><i>I</i></button>
+        <button onclick="formatText('underline')"><u>U</u></button>
+        <button onclick="addImage()">🖼️ Изображение</button>
+    </div>
+
+    <div contenteditable="true" id="guideContent" style="border: 1px solid #ccc; padding: 10px; height: 150px; overflow-y: auto;"></div><br><br>
+    
+    <!-- Выбор темы, куда поместить гайд -->
+    <label for="guideCategory">Выберите тему:</label>
+    <select id="guideCategory">
+        <option value="html">HTML</option>
+        <option value="css">CSS</option>
+        <option value="javascript">JavaScript</option>
+    </select><br><br>
+    <button onclick="addGuide()">Добавить гайд</button>
+</div>
+
+<!-- Окно авторизации -->
+<div id="loginForm" class="hidden">
+    <h3>Авторизация</h3>
+    <label for="username">Имя пользователя:</label>
+    <input type="text" id="username"><br><br>
+    <label for="password">Пароль:</label>
+    <input type="password" id="password"><br><br>
+    <button onclick="login()">Войти</button>
+</div>
+
+<script>
+    // Загружаем сохраненные гайды из localStorage
+    let articles = JSON.parse(localStorage.getItem('articles')) || {
+        html: { title: "HTML Guide", content: "HTML content here..." },
+        css: { title: "CSS Guide", content: "CSS content here..." },
+        javascript: { title: "JavaScript Guide", content: "JavaScript content here..." }
+    };
+
+    let isOwnerLoggedIn = false;
+
+    // Показать окно авторизации
+    function showLogin() {
+        document.getElementById('loginForm').classList.remove('hidden');
+    }
+
+    // Функция для авторизации
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (username === 'owner' && password === '1234') {
+            alert('Добро пожаловать, владелец!');
+            isOwnerLoggedIn = true;
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('guideForm').style.display = 'block'; // Показать форму для добавления гайдов
+            document.getElementById('loginButton').classList.add('hidden'); // Скрыть кнопку "Войти"
+            document.getElementById('logoutButton').classList.remove('hidden'); // Показать кнопку "Выйти"
+        } else {
+            alert('Неверные данные');
+        }
+    }
+
+    // Функция для выхода из аккаунта
+    function logout() {
+        alert('Вы вышли из аккаунта');
+        isOwnerLoggedIn = false;
+        document.getElementById('guideForm').style.display = 'none'; // Скрыть форму для добавления гайдов
+        document.getElementById('loginButton').classList.remove('hidden'); // Показать кнопку "Войти"
+        document.getElementById('logoutButton').classList.add('hidden'); // Скрыть кнопку "Выйти"
+    }
+
+    // Показать статьи и скрыть кнопку "Войти"
+    function showArticle(language) {
+        const contentDiv = document.getElementById('content');
+        const article = articles[language];
+        contentDiv.innerHTML = `<h1>${article.title}</h1><p>${article.content}</p>`;
+
+        // Скрыть кнопку входа после выбора раздела
+        document.getElementById('loginButton').style.display = 'none';
+    }
+
+    // Добавить гайд (только для владельца)
+    function addGuide() {
+        const title = document.getElementById('guideTitle').value;
+        const content = document.getElementById('guideContent').innerHTML;
+        const category = document.getElementById('guideCategory').value;
+
+        if (title && content && category) {
+            const newGuide = { title, content };
+            articles[category].content += `<h2>${title}</h2><p>${content}</p>`;
+            alert(`Гайд "${title}" добавлен в раздел ${category.toUpperCase()}!`);
+
+            // Сохранить гайды в localStorage
+            localStorage.setItem('articles', JSON.stringify(articles));
+        } else {
+            alert('Пожалуйста, заполните все поля.');
+        }
+    }
+
+    // Функция для форматирования текста
+    function formatText(command) {
+        document.execCommand(command, false, null);
+    }
+
+    // Вставить изображение
+    function addImage() {
+        const url = prompt('Введите URL изображения');
+        if (url) {
+            document.execCommand('insertImage', false, url);
+        }
+    }
+
+    // Поиск по статьям
+    function searchArticles() {
+        const query = document.getElementById('search').value.toLowerCase();
+        const contentDiv = document.getElementById('content');
+        let found = false;
+
+        Object.keys(articles).forEach(key => {
+            const article = articles[key];
+            if (article.title.toLowerCase().includes(query) || article.content.toLowerCase().includes(query)) {
+                contentDiv.innerHTML = `<h1>${article.title}</h1><p>${article.content}</p>`;
+                found = true;
+            }
+        });
+
+        if (!found) {
+            contentDiv.innerHTML = '<h1>Ничего не найдено</h1><p>Попробуйте другой запрос.</p>';
+        }
+    }
+</script>
+
+</body>
+</html>
